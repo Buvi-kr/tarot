@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>우주 타로 운세 | 천문과학관</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <!-- QRCode Lib -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #050510;
+            --primary: #e94560;
+            --secondary: #0f3460;
+            --accent: #4ecca3;
+            --gold: #ffd700;
+            --card-back-grad: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --text-color: #e0e0e0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40px 60px, 130px 270px;
+            color: var(--text-color);
+            font-family: 'Noto Sans KR', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 500px;
+            min-height: 100vh;
+            background: rgba(5, 5, 16, 0.9);
+            backdrop-filter: blur(10px);
+            position: relative;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 100px rgba(0,0,0,0.8);
+            border-left: 1px solid rgba(233, 69, 96, 0.2);
+            border-right: 1px solid rgba(233, 69, 96, 0.2);
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            color: var(--primary);
+            text-shadow: 0 0 15px var(--primary);
+            font-size: 2rem;
+            margin-bottom: 40px;
+            letter-spacing: 3px;
+        }
+
+        .phase {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            flex-grow: 1;
+        }
+
+        .phase.active {
+            display: flex;
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .intro-text {
+            text-align: center;
+            margin-bottom: 40px;
+            line-height: 1.6;
+            color: #aaa;
+            font-weight: 300;
+        }
+        .input-group {
+            margin: 20px 0;
+            text-align: center;
+            width: 100%;
+        }
+        input {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--secondary);
+            border-radius: 12px;
+            padding: 18px;
+            color: #fff;
+            font-size: 1.3rem;
+            width: 90%;
+            margin-bottom: 25px;
+            text-align: center;
+            outline: none;
+            transition: all 0.3s;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(233, 69, 96, 0.3);
+            background: rgba(255,255,255,0.1);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, var(--primary), #ff6b81);
+            color: white;
+            border: none;
+            padding: 16px 50px;
+            border-radius: 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(233, 69, 96, 0.4);
+            transition: all 0.3s;
+            font-family: 'Orbitron', sans-serif;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.6);
+        }
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .slots-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 40px;
+            height: 110px;
+        }
+        .slot {
+            width: 65px;
+            height: 90px;
+            border: 1px dashed rgba(255,255,255,0.2);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.6rem;
+            color: rgba(255,255,255,0.2);
+            position: relative;
+            background: rgba(255,255,255,0.03);
+            transition: all 0.5s;
+        }
+        .slot.filled {
+            border: 1px solid var(--accent);
+            background: rgba(78, 204, 163, 0.1);
+            box-shadow: 0 0 10px rgba(78, 204, 163, 0.3);
+        }
+        .slot-card {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .phase-msg {
+            font-size: 1.2rem;
+            color: var(--accent);
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 400;
+            text-shadow: 0 0 10px rgba(78, 204, 163, 0.5);
+        }
+
+        .cards-area {
+            position: relative;
+            width: 100%;
+            height: 450px;
+            perspective: 1200px;
+            margin-top: 20px;
+        }
+
+        .card-container {
+            position: absolute;
+            left: 50%;
+            bottom: 50px;
+            width: 130px;
+            height: 200px;
+            margin-left: -65px;
+            transform-origin: center 150%;
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-container.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .card-back {
+            background: var(--card-back-grad);
+            z-index: 2;
+        }
+        .card-back::before {
+            content: '';
+            position: absolute;
+            width: 90%; height: 90%;
+            border: 1px solid var(--gold);
+            opacity: 0.2;
+            border-radius: 8px;
+        }
+        .card-back::after {
+            content: '✧';
+            font-size: 3rem;
+            color: var(--gold);
+            text-shadow: 0 0 15px var(--gold);
+            opacity: 0.7;
+        }
+
+        .card-front {
+            background: #0a0a1a;
+            transform: rotateY(180deg);
+            z-index: 1;
+        }
+        .card-front img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .result-cards {
+            display: flex;
+            gap: 12px;
+            margin: 30px 0;
+            justify-content: center;
+        }
+        .res-card {
+            width: 110px;
+            height: 165px;
+            border-radius: 10px;
+            border: 2px solid var(--accent);
+            box-shadow: 0 0 20px rgba(78, 204, 163, 0.4);
+            object-fit: cover;
+        }
+
+        .result-content {
+            background: rgba(255,255,255,0.04);
+            padding: 30px;
+            border-radius: 20px;
+            margin: 20px 0;
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .res-title {
+            color: var(--gold);
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+            text-align: center;
+            line-height: 1.4;
+        }
+        .res-text {
+            line-height: 1.8;
+            font-size: 1rem;
+            color: #ccc;
+            text-align: justify;
+            word-break: keep-all;
+        }
+
+        #qrcode-wrap {
+            margin: 30px 0;
+            padding: 25px;
+            background: white;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 200px;
+        }
+        #qrcode-wrap span {
+            color: #333;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        #loader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            display: flex;
+            justify-content: center; align-items: center;
+            z-index: 9999;
+        }
+        .spinner {
+            width: 60px; height: 60px;
+            border: 4px solid rgba(233, 69, 96, 0.1);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @media screen and (max-height: 750px) {
+            .cards-area { height: 350px; }
+            .card-container { width: 100px; height: 150px; margin-left: -50px; bottom: 30px; }
+            .result-cards { margin: 15px 0; }
+            .res-card { width: 90px; height: 135px; }
+            h1 { margin-bottom: 20px; font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader"><div class="spinner"></div></div>
+
+    <div id="app">
+        <h1>COSMIC TAROT</h1>
+
+        <div id="slots-ui" class="slots-container" style="display: none;">
+            <div class="slot" id="slot-0">Zodiac</div>
+            <div class="slot" id="slot-1">Planet</div>
+            <div class="slot" id="slot-2">Element</div>
+        </div>
+
+        <div id="phase-0" class="phase active">
+            <p class="intro-text">
+                당신의 탄생과 오늘의 흐름을 계산하여<br>
+                우주가 전하는 특별한 메시지를 불러옵니다.
+            </p>
+            <div class="input-group">
+                <input type="tel" id="user-birthday" placeholder="생일 4자리 (예: 1025)" maxlength="4" autofocus>
+                <br>
+                <button class="btn" onclick="startFortune()">운세 확인하기</button>
+            </div>
+        </div>
+
+        <div id="pick-phase" class="phase">
+            <p class="phase-msg" id="phase-msg"></p>
+            <div class="cards-area" id="cards-area"></div>
+        </div>
+
+        <div id="phase-4" class="phase">
+            <div class="result-cards" id="result-cards-display"></div>
+            <div class="result-content">
+                <h2 class="res-title" id="res-title"></h2>
+                <div class="res-text" id="res-text"></div>
+            </div>
+            <div id="qrcode-wrap">
+                <span>내 운세 공유하기</span>
+                <div id="qrcode"></div>
+            </div>
+            <button class="btn" style="margin: 40px 0;" onclick="location.replace(location.pathname)">처음부터 다시</button>
+        </div>
+    </div>
+
+    <script>
+        let tarotData = {};
+        let selectedCards = []; 
+        let userBirthday = "";
+        let isReversed = false;
+        let currentStep = 1;
+
+        const ZODIAC_LIST = ["양", "황소", "쌍둥이", "게", "사자", "처녀", "천칭", "전갈", "사수", "염소", "물병", "물고기"];
+        const PLANET_LIST = ["태양", "화성", "달", "목성", "수성", "토성", "금성"];
+        const ELEMENT_LIST = ["불", "물", "공기", "흙"];
+
+        const PLACEHOLDER_COLOR = "1a1a2e/e94560";
+
+        async function init() {
+            try {
+                const res = await fetch('./tarot.json');
+                const rawText = await res.text();
+                // Strip possible header info before the first '{'
+                const jsonStart = rawText.indexOf('{');
+                if (jsonStart === -1) throw new Error("Invalid JSON format");
+                
+                tarotData = JSON.parse(rawText.substring(jsonStart));
+                
+                checkSeed();
+                document.getElementById('loader').style.display = 'none';
+            } catch (e) {
+                console.error("Data load failed", e);
+                alert("운세 데이터를 불러오는 데 실패했습니다. (tarot.json 형식을 확인해주세요)");
+            }
+        }
+
+        function checkSeed() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const seed = urlParams.get('seed');
+            if (seed) {
+                try {
+                    const decoded = JSON.parse(atob(seed));
+                    renderDirectResult(decoded.k);
+                } catch (e) {
+                    console.error("Seed decoding error", e);
+                }
+            }
+        }
+
+        function renderDirectResult(key) {
+            const fortune = tarotData[key];
+            if (!fortune) return;
+
+            const fullCardStr = fortune.card;
+            const direction = fullCardStr.includes('(역)') ? '(역)' : '(정)';
+            const parts = fullCardStr.replace(direction, '').split('-');
+            
+            showFinalUI(parts, fortune, true);
+        }
+
+        function startFortune() {
+            const input = document.getElementById('user-birthday');
+            if (input.value.length !== 4) {
+                alert("생일 4자리를 정확히 입력해주세요.");
+                return;
+            }
+            userBirthday = input.value;
+            
+            const today = new Date();
+            const yyyymmdd = today.getFullYear().toString() + 
+                           (today.getMonth() + 1).toString().padStart(2,'0') + 
+                           today.getDate().toString().padStart(2,'0');
+            
+            const calc = (parseInt(userBirthday) + parseInt(yyyymmdd)) % 10;
+            isReversed = calc >= 8;
+
+            switchPhase('pick-phase');
+            document.getElementById('slots-ui').style.display = 'flex';
+            setupStep(1);
+        }
+
+        function switchPhase(id) {
+            document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function setupStep(step) {
+            currentStep = step;
+            const area = document.getElementById('cards-area');
+            const msg = document.getElementById('phase-msg');
+            area.innerHTML = '';
+            
+            let list = [];
+            let prefix = "";
+            let title = "";
+            if (step === 1) { list = ZODIAC_LIST; title = "12황도 운명 선택"; prefix = "♈ "; }
+            else if (step === 2) { list = PLANET_LIST; title = "7행성 에너지 선택"; prefix = "☀️ "; }
+            else if (step === 3) { list = ELEMENT_LIST; title = "4원소 근원 선택"; prefix = "✨ "; }
+
+            msg.innerText = title;
+            const stepData = [...list].sort(() => Math.random() - 0.5);
+
+            const fanAngle = 90;
+            const angleStep = fanAngle / (stepData.length - 1);
+            const startAngle = -45;
+
+            stepData.forEach((name, i) => {
+                const card = document.createElement('div');
+                card.className = 'card-container';
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-face card-back"></div>
+                        <div class="card-face card-front">
+                            <img src="https://via.placeholder.com/200x300/${PLACEHOLDER_COLOR}?text=${encodeURIComponent(prefix + name)}">
+                        </div>
+                    </div>
+                `;
+                area.appendChild(card);
+
+                setTimeout(() => {
+                    const angle = startAngle + (angleStep * i);
+                    card.style.transform = `rotate(${angle}deg)`;
+                }, 100 + (50 * i));
+
+                card.onclick = () => selectCard(card, name);
+            });
+        }
+
+        function selectCard(el, name) {
+            if (el.classList.contains('picked')) return;
+            
+            document.querySelectorAll('.card-container').forEach(c => {
+                if (c !== el) {
+                    c.style.opacity = '0';
+                    c.style.pointerEvents = 'none';
+                }
+            });
+
+            el.classList.add('flipped', 'picked');
+            el.style.transform = `rotate(0deg) scale(1.1) translateY(-20px)`;
+            
+            selectedCards.push(name);
+
+            setTimeout(() => {
+                const slot = document.getElementById(`slot-${currentStep - 1}`);
+                slot.classList.add('filled');
+                slot.innerHTML = `<img src="https://via.placeholder.com/200x300/${PLACEHOLDER_COLOR}?text=${encodeURIComponent(name)}" class="slot-card">`;
+                
+                setTimeout(() => {
+                    if (currentStep < 3) {
+                        setupStep(currentStep + 1);
+                    } else {
+                        processFinalResult();
+                    }
+                }, 1000);
+            }, 800);
+        }
+
+        function processFinalResult() {
+            const dirStr = isReversed ? '(역)' : '(정)';
+            const fullKeyString = `${selectedCards[0]}-${selectedCards[1]}-${selectedCards[2]}${dirStr}`;
+            
+            let matchedKey = "";
+            let fortuneObj = null;
+
+            for (let key in tarotData) {
+                if (tarotData[key].card === fullKeyString) {
+                    matchedKey = key;
+                    fortuneObj = tarotData[key];
+                    break;
+                }
+            }
+
+            if (!fortuneObj) {
+                alert("운세 데이터 매칭에 실패했습니다.");
+                return;
+            }
+
+            showFinalUI(selectedCards, fortuneObj, false, matchedKey);
+        }
+
+        function showFinalUI(cardNames, fortune, isShared, matchedKey) {
+            switchPhase('phase-4');
+            document.getElementById('slots-ui').style.display = 'none';
+            
+            const resContainer = document.getElementById('result-cards-display');
+            resContainer.innerHTML = '';
+            cardNames.forEach(name => {
+                const img = document.createElement('img');
+                img.className = 'res-card';
+                img.src = `https://via.placeholder.com/200x300/${PLACEHOLDER_COLOR}?text=${encodeURIComponent(name)}`;
+                resContainer.appendChild(img);
+            });
+
+            document.getElementById('res-title').innerText = fortune.title;
+            document.getElementById('res-text').innerHTML = fortune.content.replace(/\n/g, '<br>');
+
+            if (isShared) {
+                document.getElementById('qrcode-wrap').style.display = 'none';
+            } else {
+                const seedObj = { b: userBirthday, k: matchedKey };
+                const seed = btoa(JSON.stringify(seedObj));
+                const shareUrl = window.location.origin + window.location.pathname + "?seed=" + seed;
+
+                new QRCode(document.getElementById("qrcode"), {
+                    text: shareUrl,
+                    width: 150,
+                    height: 150,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
