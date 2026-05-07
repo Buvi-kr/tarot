@@ -140,39 +140,38 @@
             transform: translateY(0);
         }
         #narrative-img {
-            width: 300px;
+            width: 240px; /* Reduced by 20% from 300px */
             height: auto;
-            border-radius: 15px;
-            box-shadow: 0 0 50px rgba(78, 204, 163, 0.3);
-            margin-bottom: 40px;
-            border: 2px solid var(--accent);
+            border-radius: 12px;
+            box-shadow: 0 0 40px rgba(78, 204, 163, 0.4), 0 0 100px rgba(0,0,0,0.5);
+            margin-bottom: 30px;
+            border: 1px solid rgba(78, 204, 163, 0.5);
         }
         .narr-type {
-            font-size: 1.2rem;
-            color: #aaa;
-            margin-bottom: 10px;
+            font-size: 1.1rem;
+            color: var(--gold);
+            letter-spacing: 5px;
+            margin-bottom: 25px;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            opacity: 0.8;
         }
-        .narr-choice {
+        .narr-card-combined {
+            font-family: 'Orbitron', 'Noto Sans KR', sans-serif;
             font-size: 1.8rem;
             color: #fff;
-            margin-bottom: 25px;
+            text-shadow: 0 0 15px rgba(255,255,255,0.3);
+            margin-bottom: 12px;
             font-weight: 700;
         }
-        .narr-card-eng {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 2.2rem;
-            color: var(--gold);
-            text-shadow: 0 0 20px var(--gold);
-            margin-bottom: 5px;
-        }
-        .narr-card-kor {
-            font-size: 1.6rem;
+        .narr-choice {
+            font-size: 1.3rem;
             color: var(--accent);
-            margin-bottom: 30px;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
         }
         .narr-msg {
-            font-size: 1.3rem;
-            color: #ccc;
+            display: none; /* Hide redundant "dot" message */
         }
         .input-group {
             margin: 10px 0;
@@ -856,7 +855,7 @@
             font-size: 0.75rem; color: var(--gold); letter-spacing: 3px;
             margin-bottom: 4px; font-family: 'Orbitron', sans-serif;
         }
-        .narr-edu-text { font-size: 0.95rem; color: #ccc; line-height: 1.5; }
+        .narr-edu-text { font-size: 1.1rem; color: #eee; line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -873,13 +872,11 @@
         </div>
 
         <div id="narrative-content">
+            <div class="narr-type" id="narr-type"></div>
             <img id="narrative-img" src="" alt="Card">
             <div id="narrative-text">
-                <div class="narr-type" id="narr-type"></div>
+                <div class="narr-card-combined" id="narr-card-combined"></div>
                 <div class="narr-choice" id="narr-choice"></div>
-                <div class="narr-card-eng" id="narr-card-eng"></div>
-                <div class="narr-card-kor" id="narr-card-kor"></div>
-                <div class="narr-msg" id="narr-msg"></div>
                 <div class="narr-edu" id="narr-edu"></div>
             </div>
         </div>
@@ -1409,10 +1406,15 @@
                 document.getElementById('narrative-img').src = cardImg;
                 document.getElementById('narrative-img').style.display = 'block';
                 document.getElementById('narr-type').innerText = type;
-                document.getElementById('narr-choice').innerText = choice;
-                document.getElementById('narr-card-eng').innerText = eng;
-                document.getElementById('narr-card-kor').innerText = kor;
-                document.getElementById('narr-msg').innerText = "이(가) 당신의 운명으로 점지되었습니다.";
+                
+                // Combined Card Name: Eng (Kor)
+                document.getElementById('narr-card-combined').innerText = `${eng} (${kor})`;
+                
+                // Astronomical Choice Label
+                let choicePrefix = "천문학적 별자리";
+                if (type.includes("행성")) choicePrefix = "천문학적 행성";
+                if (type.includes("원소")) choicePrefix = "우주적 원소";
+                document.getElementById('narr-choice').innerText = `${choicePrefix} : ${choice}`;
 
                 // Educational content
                 const eduEl = document.getElementById('narr-edu');
